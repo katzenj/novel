@@ -19,3 +19,20 @@ export const getPrevText = (
   );
   // complete(editor.storage.markdown.getMarkdown());
 };
+
+export const getText = (
+  editor: Editor,
+  {
+    from,
+    to
+  }: {
+    from: number;
+    to: number;
+  }
+) => {
+  return editor.state.doc.textBetween(
+    from,
+    to,
+    "\n",
+  );
+}

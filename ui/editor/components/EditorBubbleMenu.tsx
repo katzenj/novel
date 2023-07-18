@@ -1,17 +1,22 @@
 import { BubbleMenu, BubbleMenuProps } from "@tiptap/react";
 import { FC, useState } from "react";
+import { useCompletion } from "ai/react";
+import { toast } from "sonner";
 import {
   BoldIcon,
   ItalicIcon,
   UnderlineIcon,
   StrikethroughIcon,
   CodeIcon,
+  Edit3Icon
 } from "lucide-react";
+
 
 import { NodeSelector } from "./node-selector";
 import { ColorSelector } from "./color-selector";
 import { LinkSelector } from "./link-selector";
 import { cn } from "@/lib/utils";
+import { getText } from "@/lib/editor";
 
 export interface BubbleMenuItem {
   name: string;
@@ -23,6 +28,23 @@ export interface BubbleMenuItem {
 type EditorBubbleMenuProps = Omit<BubbleMenuProps, "children">;
 
 export const EditorBubbleMenu: FC<EditorBubbleMenuProps> = (props) => {
+  const { complete } = useCompletion({
+    id: "novel-edit",
+    api: "/api/edit",
+    onFinish: (_prompt, completion) => {
+      console.log("Completion in Editor")
+      console.log(completion)
+      // highlight the generated text
+      // editor.commands.setTextSelection({
+      //   from: range.from,
+      //   to: range.from + completion.length,
+      // });
+    },
+    onError: () => {
+      toast.error("Something went wrong.");
+    },
+  });
+
   const items: BubbleMenuItem[] = [
     {
       name: "bold",
@@ -54,6 +76,12 @@ export const EditorBubbleMenu: FC<EditorBubbleMenuProps> = (props) => {
       command: () => props.editor.chain().focus().toggleCode().run(),
       icon: CodeIcon,
     },
+    {
+      name: "edit",
+      isActive: () => false,
+      command: () => complete(getText(props.editor, { from: props.editor.state.selection.from, to: props.editor.state.selection.to })),
+      icon: Edit3Icon
+    }
   ];
 
   const bubbleMenuProps: EditorBubbleMenuProps = {
